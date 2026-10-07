@@ -1,0 +1,149 @@
+/******************************************************************************\
+FILE:           std_blank_page.zm
+AUTHOR:         Theo Veenker <theo.veenker@beexy.nl>
+ADAPTED BY:     -
+
+DESCRIPTION:
+
+Provides a page object for temporarily displaying nothing.
+
+HISTORY:
+2017-01-01 TV   Initial version for Zep 2.0
+
+\******************************************************************************/
+
+
+Page blank_page
+{
+    bool        checkkeys;      // if set, continue keys enabled
+
+
+    on_event:key_press()
+    {
+        if (target != null && checkkeys &&
+                (input_key == KEY_Return || input_key == ' '))
+            done(CONTINUE);
+        else
+            handle_special_key(this, input_key, input_modifiers);
+    }
+
+
+    on_event:message()
+    {
+        // Handle 'continue' message received from control page.
+        if (message_arg == CONTINUE)
+            done(CONTINUE);
+    }
+
+
+    Timer timer
+    {
+        on_event:expire()
+        {
+            done(TIMEOUT);
+        }
+    }
+
+
+    void done(int msgid)
+    {
+        timer.abort();
+
+        checkkeys = false;
+
+        signal_target(msgid);   // Tell caller we're done.
+        target = null;
+
+        if (control.target == this)
+        {
+            control.disable_keys();
+            control.target = null;
+        }
+    }
+
+
+    //==========================================================================
+
+
+    void action_auto(dur timeout,
+        dur showdelay=-1s, dur fadedur=-1s)
+    {
+        action(null, timeout, showdelay, fadedur, false);
+    }
+
+
+    void action_auto(Object caller, dur timeout,
+        dur showdelay=-1s, dur fadedur=-1s)
+    {
+        action(caller, timeout, showdelay, fadedur, false);
+    }
+
+
+    void action(Object caller, dur timeout,
+        dur showdelay=-1s, dur fadedur=-1s, bool kbd=true)
+    {
+        timer.abort();
+
+        // Force page show delay and transition duration in sane range.
+        if (showdelay < 0s) showdelay = PAGE_TRANSITION_DELAY;
+        else showdelay = limit(showdelay, 0s, MAX_PAGE_TRANSITION_DELAY);
+        if (fadedur < 0s) fadedur = PAGE_TRANSITION_DURATION;
+        else fadedur = limit(fadedur, 0s, MAX_PAGE_TRANSITION_DURATION);
+
+        // Clear page transition delay.
+        page_transition_delay = 0s;
+
+        // Let's delay the first test page trial following this page.
+        first_trial_delay = FIRST_TRIAL_EXTRA_DELAY;
+
+        if (!test_window_front.show_page(this, now() + showdelay, fadedur))
+        {
+            // Page not yet shown. Extend timeout period (if applicable)
+            // until page is fully visible (fade-in has finished).
+            if (timeout > 0s)
+                timeout += expected_transition_finish_time - now();
+        }
+
+        if (caller != null)
+        {
+            checkkeys = kbd && !test_window_front.is_output_only();
+            if (timeout > 0s) timer.start(now() + timeout);
+
+            target = caller;
+            if (timeout <= 0s || timeout >= 10s)
+            {
+                control.target = this;
+                control.disable_keys();
+                control.enable_key(KEY_Return, CONTINUE);
+                control.enable_key(' ', CONTINUE);
+//                control.enable_key(KEY_Escape, CONTINUE);
+            }
+
+            if (checkkeys)
+                test_window_front.activate();
+            else if (test_window_front.is_output_only())
+                ctrl_window.activate();
+        }
+        else
+        {
+            checkkeys = false;
+            target = null;
+        }
+    }
+
+
+    void stop_action()
+    {
+        timer.abort();
+
+        checkkeys = false;
+
+        target = null;
+
+        if (control.target == this)
+        {
+            control.disable_keys();
+            control.target = null;
+        }
+    }
+}

@@ -1,0 +1,233 @@
+/******************************************************************************\
+FILE:           std_exit_page2.zm
+AUTHOR:         Theo Veenker <theo.veenker@beexy.nl>
+ADAPTED BY:     -
+
+DESCRIPTION:
+
+Provides a page object for displaying an slide-show based thank-you message.
+Mainly to be used with experiments for infants. Could be used with music
+under it.
+
+HISTORY:
+2017-01-01 TV   Initial version for Zep 2.0
+
+\******************************************************************************/
+
+
+Page exit_page
+{
+    string[]    images = {};    // array of images to use in slide show
+    dur         framedur;       // display duration of each frame
+    int         curimage;       // current image being displayed
+    bool        checkkeys;      // if set, continue keys enabled
+
+
+    init()
+    {
+        fill_pattern_color = ENTRY_PAGE_COLOR;
+    }
+
+
+    on_event:close()
+    {
+        done(CONTINUE);
+    }
+
+
+    on_event:key_press()
+    {
+        if (target != null && checkkeys &&
+                (input_key == KEY_Return || input_key == ' ' ||
+                input_key == KEY_Escape))
+            done(CONTINUE);
+        else
+            handle_special_key(this, input_key, input_modifiers);
+    }
+
+
+    on_event:message()
+    {
+        // Handle 'continue' message received from control page.
+        if (message_arg == CONTINUE)
+            done(CONTINUE);
+    }
+
+
+    on_event:hide_finish()
+    {
+        canvas.image.image = "";
+    }
+
+
+    CanvasGadget canvas
+    {
+        on_event:resize()
+        {
+            offset_x = actual_width / 2;
+            offset_y = actual_height / 2;
+        }
+
+
+        ImageShape image
+        {
+            void load(string fn)
+            {
+                image = fn;
+                x = -actual_width / 2;
+                y = -actual_height / 2;
+                is_visible = true;
+            }
+        }
+    }
+
+
+    Timer updater
+    {
+        on_event:expire()
+        {
+            if (images.size > 0)
+            {
+                if (++curimage >= images.size) curimage = 0;
+                canvas.image.load(images[curimage]);
+            }
+            start(expire_time + framedur);
+        }
+    }
+
+
+    Timer timer
+    {
+        on_event:expire()
+        {
+            done(TIMEOUT);
+        }
+    }
+
+
+    void done(int msgid)
+    {
+        timer.abort();
+        updater.abort();
+
+        checkkeys = false;
+
+        signal_target(msgid);   // Tell caller we're done.
+        target = null;
+
+        if (control.target == this)
+        {
+            control.disable_keys();
+            control.target = null;
+        }
+    }
+
+
+    //==========================================================================
+
+
+    void clear_images()
+    {
+        images.size = 0;
+    }
+
+
+    void add_image(string fn)
+    {
+        images.size = images.size + 1;
+        images[images.size - 1] = fn;
+    }
+
+
+    void shuffle_images()
+    {
+        images.shuffle(0, images.size);
+    }
+
+
+    void action_auto(dur timeout=0s, dur refresh=2s,
+        dur showdelay=-1s, dur fadedur=-1s)
+    {
+        action(null, timeout, refresh, showdelay, fadedur, false);
+    }
+
+
+    void action_auto(Object caller, dur timeout=0s, dur refresh=2s,
+        dur showdelay=-1s, dur fadedur=-1s)
+    {
+        action(caller, timeout, refresh, showdelay, fadedur, false);
+    }
+
+
+    void action(Object caller, dur timeout=0s, dur refresh=2s,
+        dur showdelay=-1s, dur fadedur=-1s, bool kbd=true)
+    {
+        timer.abort();
+        updater.abort();
+
+        framedur = max(refresh, 10ms);
+        curimage = -1;
+
+        // Force page show delay and transition duration in sane range.
+        if (showdelay < 0s) showdelay = PAGE_TRANSITION_DELAY;
+        else showdelay = limit(showdelay, 0s, MAX_PAGE_TRANSITION_DELAY);
+        if (fadedur < 0s) fadedur = PAGE_TRANSITION_DURATION;
+        else fadedur = limit(fadedur, 0s, MAX_PAGE_TRANSITION_DURATION);
+
+        // Clear page transition delay.
+        page_transition_delay = 0s;
+
+        // Clear first trial delay.
+        first_trial_delay = 0s;
+
+        if (!test_window_front.show_page(this, now() + showdelay, fadedur))
+        {
+            // Page not yet shown. Extend timeout period (if applicable)
+            // until page is fully visible (fade-in has finished).
+            if (timeout > 0s)
+                timeout += expected_transition_finish_time - now();
+        }
+
+        if (caller != null)
+        {
+            checkkeys = kbd && !test_window_front.is_output_only();
+            if (timeout > 0s) timer.start(now() + timeout);
+
+            target = caller;
+            control.target = this;
+            control.disable_keys();
+            control.enable_key(KEY_Return, CONTINUE);
+            control.enable_key(' ', CONTINUE);
+            control.enable_key(KEY_Escape, CONTINUE);
+
+            if (checkkeys)
+                test_window_front.activate();
+            else if (test_window_front.is_output_only())
+                ctrl_window.activate();
+        }
+        else
+        {
+            checkkeys = false;
+            target = null;
+        }
+
+        if (images.size > 0) updater.start(now() + 10ms);
+    }
+
+
+    void stop_action()
+    {
+        timer.abort();
+        updater.abort();
+
+        checkkeys = false;
+
+        target = null;
+
+        if (control.target == this)
+        {
+            control.disable_keys();
+            control.target = null;
+        }
+    }
+}

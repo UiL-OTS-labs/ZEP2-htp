@@ -49,7 +49,7 @@ init()
 }
 
 
-NormalWindow test_window1
+NormalWindow test_window_front
 {
     init()
     {
@@ -149,7 +149,7 @@ NormalWindow test_window1
 }
 
 
-NormalWindow test_window2
+NormalWindow test_window_left
 {
     init()
     {
@@ -249,7 +249,7 @@ NormalWindow test_window2
 }
 
 
-NormalWindow test_window3
+NormalWindow test_window_right
 {
     init()
     {
@@ -861,16 +861,16 @@ void setup_windows()
     ctrl_window.activate();
 
     position_test_windows();
-    control.show_thumbnail(test_window2, test_window1, test_window3);
+    control.show_thumbnail(test_window_left, test_window_front, test_window_right);
 }
 
 
 // Shows the test window.
 void show_test_windows()
 {
-    test_window3.show();
-    test_window2.show();
-    test_window1.show();
+    test_window_right.show();
+    test_window_left.show();
+    test_window_front.show();
 
     ctrl_window.hide();
     ctrl_window.show();
@@ -880,60 +880,41 @@ void show_test_windows()
 // Hides the test window.
 void hide_test_windows()
 {
-    test_window1.hide();
-    test_window2.hide();
-    test_window3.hide();
+    test_window_front.hide();
+    test_window_left.hide();
+    test_window_right.hide();
 }
 
 
 // Position the test window on target head.
-void position_test_windows(bool home=false)
+void position_test_windows(bool fullscreen=true)
 {
-    if (display_device.num_heads < 4) home = true;
+    println("position windows fullscreen = " + fullscreen);
 
-    if (home)
+    if (!fullscreen)
     {
-        test_window3.is_fullscreen = false;
-        test_window3.is_maximized = false;
-        test_window2.is_fullscreen = false;
-        test_window2.is_maximized = false;
-        test_window1.is_fullscreen = false;
-        test_window1.is_maximized = false;
-        if (display_device.num_heads >= 4)
-        {
-            test_window3.virtual_size = display_device.head_width[TEST_WINDOW3_TARGET_HEAD],
-                display_device.head_height[TEST_WINDOW3_TARGET_HEAD];
-            test_window2.virtual_size = display_device.head_width[TEST_WINDOW2_TARGET_HEAD],
-                display_device.head_height[TEST_WINDOW2_TARGET_HEAD];
-            test_window1.virtual_size = display_device.head_width[TEST_WINDOW1_TARGET_HEAD],
-                display_device.head_height[TEST_WINDOW1_TARGET_HEAD];
-        }
-        else if (display_device.num_heads >= 2)
-        {
-            test_window3.virtual_size = display_device.head_width[1],
-                display_device.head_height[1];
-            test_window2.virtual_size = display_device.head_width[1],
-                display_device.head_height[1];
-            test_window1.virtual_size = display_device.head_width[1],
-                display_device.head_height[1];
-        }
-        else
-        {
-            test_window3.virtual_size = display_device.head_width[CTRL_WINDOW_TARGET_HEAD],
-                display_device.head_height[CTRL_WINDOW_TARGET_HEAD];
-            test_window2.virtual_size = display_device.head_width[CTRL_WINDOW_TARGET_HEAD],
-                display_device.head_height[CTRL_WINDOW_TARGET_HEAD];
-            test_window1.virtual_size = display_device.head_width[CTRL_WINDOW_TARGET_HEAD],
-                display_device.head_height[CTRL_WINDOW_TARGET_HEAD];
-        }
-        test_window3.target_head = CTRL_WINDOW_TARGET_HEAD;
-        test_window3.alignment_and_relative_size =
+        test_window_right.is_fullscreen = false;
+        test_window_right.is_maximized = false;
+        test_window_left.is_fullscreen = false;
+        test_window_left.is_maximized = false;
+        test_window_front.is_fullscreen = false;
+        test_window_front.is_maximized = false;
+        
+        test_window_right.virtual_size = display_device.head_width[CTRL_WINDOW_TARGET_HEAD],
+            display_device.head_height[CTRL_WINDOW_TARGET_HEAD];
+        test_window_left.virtual_size = display_device.head_width[CTRL_WINDOW_TARGET_HEAD],
+            display_device.head_height[CTRL_WINDOW_TARGET_HEAD];
+        test_window_front.virtual_size = display_device.head_width[CTRL_WINDOW_TARGET_HEAD],
+            display_device.head_height[CTRL_WINDOW_TARGET_HEAD];
+
+        test_window_right.target_head = CTRL_WINDOW_TARGET_HEAD;
+        test_window_right.alignment_and_relative_size =
             ALIGN_END, ALIGN_BEGIN, 30, 30;
-        test_window2.target_head = CTRL_WINDOW_TARGET_HEAD;
-        test_window2.alignment_and_relative_size =
+        test_window_left.target_head = CTRL_WINDOW_TARGET_HEAD;
+        test_window_left.alignment_and_relative_size =
             ALIGN_BEGIN, ALIGN_BEGIN, 30, 30;
-        test_window1.target_head = CTRL_WINDOW_TARGET_HEAD;
-        test_window1.alignment_and_relative_size =
+        test_window_front.target_head = CTRL_WINDOW_TARGET_HEAD;
+        test_window_front.alignment_and_relative_size =
             ALIGN_CENTER, ALIGN_BEGIN, 30, 30;
 
         ctrl_window.is_fullscreen = false;
@@ -942,16 +923,15 @@ void position_test_windows(bool home=false)
     }
     else
     {
-        // We can only get here iff nheads >= 4.
-        test_window3.target_head = TEST_WINDOW3_TARGET_HEAD;
-        test_window3.virtual_size = 0, 0;
-        test_window3.is_fullscreen = true;
-        test_window2.target_head = TEST_WINDOW2_TARGET_HEAD;
-        test_window2.virtual_size = 0, 0;
-        test_window2.is_fullscreen = true;
-        test_window1.target_head = TEST_WINDOW1_TARGET_HEAD;
-        test_window1.virtual_size = 0, 0;
-        test_window1.is_fullscreen = true;
+        test_window_right.target_head = TEST_WINDOW_RIGHT_HEAD;
+        test_window_right.virtual_size = 0, 0;
+        test_window_right.is_fullscreen = true;
+        test_window_left.target_head = TEST_WINDOW_LEFT_HEAD;
+        test_window_left.virtual_size = 0, 0;
+        test_window_left.is_fullscreen = true;
+        test_window_front.target_head = TEST_WINDOW_FRONT_HEAD;
+        test_window_front.virtual_size = 0, 0;
+        test_window_front.is_fullscreen = true;
 
         ctrl_window.target_head = CTRL_WINDOW_TARGET_HEAD;
         ctrl_window.is_fullscreen = true;
@@ -1038,17 +1018,17 @@ void handle_special_key(Page page, char key, int modifiers)
     {
         if (key == KEY_F1)
         {
-            test_window1.deactivate();
+            test_window_front.deactivate();
             ctrl_window.activate();
         }
 //        else if (key == KEY_F2)
 //            ;
         else if (key == KEY_F3)
-            position_test_windows(true);
-        else if (key == KEY_F4)
             position_test_windows(false);
+        else if (key == KEY_F4)
+            position_test_windows(true);
         else if (key == KEY_F5)
-            control.toggle_thumbnail(test_window2, test_window1, test_window3);
+            control.toggle_thumbnail(test_window_left, test_window_front, test_window_right);
         else if (key == KEY_F10)
             page.window.is_maximized = !page.window.is_maximized;
         else if (key == KEY_F11)
@@ -1098,7 +1078,7 @@ void handle_special_key(Window win, char key, int modifiers)
     {
         if (key == KEY_F1)
         {
-            test_window1.deactivate();
+            test_window_front.deactivate();
             ctrl_window.activate();
         }
 //        else if (key == KEY_F2)
@@ -1108,7 +1088,7 @@ void handle_special_key(Window win, char key, int modifiers)
         else if (key == KEY_F4)
             position_test_windows(false);
         else if (key == KEY_F5)
-            control.toggle_thumbnail(test_window2, test_window1, test_window3);
+            control.toggle_thumbnail(test_window_left, test_window_front, test_window_right);
         else if (key == KEY_F10)
             win.is_maximized = !win.is_maximized;
         else if (key == KEY_F11)

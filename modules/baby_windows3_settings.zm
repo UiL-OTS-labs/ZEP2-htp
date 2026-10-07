@@ -1,27 +1,61 @@
 /*
     These settings will be used by ZEP to position the windows on the right
     display. These settings will likely need to be configured per setup.
-    Run zepdpyinfo oin a terminal to review zep display detection info.
+    Run zepdpyinfo in a terminal to view zep display detection info.
 */
 
 // Main control window
-const int CTRL_WINDOW_TARGET_HEAD = 0;
-
-// Note: these settings are only activated if zep detects equal or more than
-// 4 heads (displays). Any thing less and it will try to nicely stack the windows on the
-// CTRL_WINDOW target head.
+int CTRL_WINDOW_TARGET_HEAD = 0;
 
 // Front Monitor/Display/Screen
-const int TEST_WINDOW1_TARGET_HEAD = 3;
+int TEST_WINDOW_FRONT_HEAD = 3;
 
 // Left Monitor/Display/Screen
-const int TEST_WINDOW2_TARGET_HEAD = 2;
+int TEST_WINDOW_LEFT_HEAD = 2;
 
 // Right Monitor/Display/Screen
-const int TEST_WINDOW3_TARGET_HEAD = 4;
+int TEST_WINDOW_RIGHT_HEAD = 4;
 
 // Set thumbnail width for all window thumbnails
 const int THUMBNAIL_WIDTH = int(160*1.5);
 
-// Set thumbnail hgith for all window thumbnails
+// Set thumbnail height for all window thumbnails
 const int THUMBNAIL_HEIGHT = int(90*1.5);
+
+const string CTRL_MONITOR = "monitor-control";
+const string LEFT_MONITOR = "monitor-left";
+const string FRONT_MONITOR = "monitor-front";
+const string RIGHT_MONITOR = "monitor-right";
+
+init() {
+    // Sets up the heads, this code primarily exist to be able to develop this script
+    // outside of the lab with a limited number of monitors.
+    bool change = false;
+
+    if (have_option(CTRL_MONITOR)) {
+        CTRL_WINDOW_TARGET_HEAD = int(option_value(CTRL_MONITOR));
+        change = true;
+    }
+
+    if (have_option(LEFT_MONITOR)) {
+        TEST_WINDOW_LEFT_HEAD = int(option_value(LEFT_MONITOR));
+        change = true;
+    }
+
+    if (have_option(FRONT_MONITOR)) {
+        TEST_WINDOW_FRONT_HEAD = int(option_value(FRONT_MONITOR));
+        change = true;
+    }
+
+    if (have_option(RIGHT_MONITOR)) {
+        TEST_WINDOW_RIGHT_HEAD = int(option_value(RIGHT_MONITOR));
+        change = true;
+    }
+
+    if (change) {
+        println("Presenting control on head " + CTRL_WINDOW_TARGET_HEAD);
+        println("Presenting left window on head " + TEST_WINDOW_LEFT_HEAD);
+        println("Presenting front window on head " + TEST_WINDOW_FRONT_HEAD);
+        println("Presenting right window on head " + TEST_WINDOW_RIGHT_HEAD);
+    }
+}

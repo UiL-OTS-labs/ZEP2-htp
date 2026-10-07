@@ -344,9 +344,9 @@ State test_handler
 
         // Show pages representing the front and side lights on the appropriate
         // test windows.
-        test_window1.show_page(test::front_page);
-        test_window2.show_page(test::left_page);
-        test_window3.show_page(test::right_page);
+        test_window_front.show_page(test::front_page);
+        test_window_left.show_page(test::left_page);
+        test_window_right.show_page(test::right_page);
 
 
         // Update status line on control window. Cleared in done() above.

@@ -25,6 +25,10 @@ HISTORY:
 
 requires 2.7;
 
+// import early, as otherwise the windows are positioned before their desired
+// location is updated...
+import baby_windows3_settings;
+
 
 // Default/Standard modules
 import std_entry_page2;
