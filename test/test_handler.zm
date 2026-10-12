@@ -257,17 +257,22 @@ State test_handler
         {
             this.scaling_all = 0;
 
-            if(lightpos & FRONT_SIDE)
+            if (lightpos & FRONT_SIDE)
             {
-                 this.scaling[FRONT_RIGHT] = sound_settings::PLAYBACK_SCALING_VOLUME;
-                 this.scaling[FRONT_LEFT] = sound_settings::PLAYBACK_SCALING_VOLUME;
+                if (this.num_channels > 2) {
+                    this.scaling[CHANNEL_FRONT] = sound_settings::PLAYBACK_SCALING_VOLUME;
+                }
+                else { // mimic sound from front 
+                    this.scaling[CHANNEL_RIGHT] = sound_settings::PLAYBACK_SCALING_VOLUME;
+                    this.scaling[CHANNEL_LEFT] = sound_settings::PLAYBACK_SCALING_VOLUME;
+                }
             }
 
             if(lightpos & LEFT_SIDE)
-                this.scaling[REAR_LEFT] = sound_settings::PLAYBACK_SCALING_VOLUME;
+                this.scaling[CHANNEL_LEFT] = sound_settings::PLAYBACK_SCALING_VOLUME;
 
             if(lightpos & RIGHT_SIDE)
-                this.scaling[REAR_RIGHT] = sound_settings::PLAYBACK_SCALING_VOLUME;
+                this.scaling[CHANNEL_RIGHT] = sound_settings::PLAYBACK_SCALING_VOLUME;
         }
 
         void play(time tstart)

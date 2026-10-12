@@ -19,10 +19,9 @@ plugin zep_sound;
 import sound_settings;
 
 enum SoundChannel {
-    FRONT_LEFT  = 0,
-    FRONT_RIGHT = 1,
-    REAR_LEFT   = 2,
-    REAR_RIGHT  = 3,
+    CHANNEL_LEFT  = 0,
+    CHANNEL_RIGHT = 1,
+    CHANNEL_FRONT = 2,
 }
 
 SoundPlaybackDevice sound_output_device
@@ -31,12 +30,20 @@ SoundPlaybackDevice sound_output_device
     {
         int device_id = PLAYBACK_DEVICE_ID;
         string sound_device = "sounddev";
+        string num_channels= "num_channels";
+
+        int nchannels = PLAYBACK_NUM_CHANNELS;
         if (have_option(sound_device)) {
             device_id = int(option_value(sound_device));
         }
+        if (have_option(num_channels)) {
+            device_id = int(option_value(num_channels));
+        }
         println("Using sound device = " + device_id);
+        println("Using " + nchannels + "channels");
+
         open(
-            PLAYBACK_NUM_CHANNELS,
+            nchannels,
             PLAYBACK_SAMPLE_RATE,
             device_id,
             PLAYBACK_LATENCY
